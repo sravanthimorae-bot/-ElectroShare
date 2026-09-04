@@ -1,0 +1,3625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#07111f">
+<meta name="description" content="ElectroShare - A scientific technology creator community">
+<title>ElectroShare</title>
+
+<!-- Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+:root{
+    --bg:#050b14;
+    --panel:#0b1524;
+    --panel2:#0e1c2e;
+    --line:rgba(91,180,255,.18);
+    --text:#edf7ff;
+    --muted:#91a9bc;
+    --cyan:#39d9ff;
+    --blue:#4e8cff;
+    --green:#54e39b;
+    --pink:#ff6db5;
+    --yellow:#ffd35c;
+    --danger:#ff647c;
+}
+
+html,body{
+    width:100%;
+    min-height:100%;
+}
+
+body{
+    font-family:Inter,Segoe UI,Arial,sans-serif;
+    background:
+        radial-gradient(circle at 15% 15%,rgba(43,151,255,.12),transparent 28%),
+        radial-gradient(circle at 85% 20%,rgba(0,255,220,.08),transparent 25%),
+        radial-gradient(circle at 50% 90%,rgba(119,67,255,.09),transparent 30%),
+        #050b14;
+    color:var(--text);
+    overflow-x:hidden;
+}
+
+/* Scientific grid */
+body:before{
+    content:"";
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    z-index:-3;
+    opacity:.42;
+    background-image:
+        linear-gradient(rgba(69,175,255,.055) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(69,175,255,.055) 1px,transparent 1px);
+    background-size:42px 42px;
+}
+
+body:after{
+    content:"";
+    position:fixed;
+    width:600px;
+    height:600px;
+    border:1px solid rgba(63,208,255,.08);
+    border-radius:50%;
+    left:-220px;
+    bottom:-220px;
+    box-shadow:
+        0 0 0 80px rgba(63,208,255,.025),
+        0 0 0 160px rgba(63,208,255,.018);
+    pointer-events:none;
+    z-index:-2;
+}
+
+button,
+input,
+textarea,
+select{
+    font:inherit;
+}
+
+button{
+    cursor:pointer;
+}
+
+a{
+    color:inherit;
+    text-decoration:none;
+}
+
+/* TOP BAR */
+
+.topbar{
+    height:68px;
+    position:fixed;
+    top:0;
+    left:0;
+    right:0;
+    z-index:100;
+    display:flex;
+    align-items:center;
+    gap:18px;
+    padding:0 22px;
+    background:rgba(5,11,20,.88);
+    backdrop-filter:blur(18px);
+    border-bottom:1px solid var(--line);
+}
+
+.logo{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    min-width:205px;
+    font-weight:900;
+    font-size:20px;
+    letter-spacing:.4px;
+}
+
+.logo-symbol{
+    width:35px;
+    height:35px;
+    border-radius:10px;
+    display:grid;
+    place-items:center;
+    background:
+        linear-gradient(135deg,rgba(57,217,255,.25),rgba(78,140,255,.25));
+    border:1px solid rgba(57,217,255,.5);
+    box-shadow:0 0 22px rgba(57,217,255,.2);
+}
+
+.logo span{
+    color:var(--cyan);
+}
+
+.search{
+    flex:1;
+    max-width:600px;
+    position:relative;
+}
+
+.search input{
+    width:100%;
+    height:42px;
+    padding:0 45px 0 16px;
+    border-radius:12px;
+    border:1px solid var(--line);
+    outline:none;
+    color:white;
+    background:rgba(12,27,43,.9);
+}
+
+.search input:focus{
+    border-color:rgba(57,217,255,.65);
+    box-shadow:0 0 0 3px rgba(57,217,255,.08);
+}
+
+.search-icon{
+    position:absolute;
+    right:15px;
+    top:11px;
+    color:var(--muted);
+}
+
+.top-actions{
+    margin-left:auto;
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+
+.icon-btn{
+    width:40px;
+    height:40px;
+    border-radius:11px;
+    border:1px solid var(--line);
+    color:#dff6ff;
+    background:rgba(13,29,47,.9);
+}
+
+.icon-btn:hover{
+    border-color:rgba(57,217,255,.5);
+    color:var(--cyan);
+}
+
+.account-btn{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:6px 11px 6px 6px;
+    border-radius:13px;
+    border:1px solid var(--line);
+    color:white;
+    background:rgba(13,29,47,.9);
+}
+
+.avatar{
+    width:31px;
+    height:31px;
+    border-radius:50%;
+    display:grid;
+    place-items:center;
+    background:linear-gradient(135deg,#257cff,#25d5ff);
+    font-weight:800;
+    font-size:13px;
+}
+
+/* LAYOUT */
+
+.app{
+    display:grid;
+    grid-template-columns:230px minmax(0,1fr) 275px;
+    gap:20px;
+    max-width:1500px;
+    margin:auto;
+    padding:88px 20px 35px;
+}
+
+.sidebar,
+.rightbar{
+    position:sticky;
+    top:88px;
+    height:max-content;
+}
+
+.side-card{
+    border:1px solid var(--line);
+    background:rgba(8,20,34,.78);
+    border-radius:18px;
+    padding:12px;
+    margin-bottom:14px;
+    box-shadow:0 15px 50px rgba(0,0,0,.18);
+}
+
+.nav-btn{
+    width:100%;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:12px;
+    margin-bottom:4px;
+    border:0;
+    border-radius:11px;
+    color:#a9c1d4;
+    background:transparent;
+    text-align:left;
+}
+
+.nav-btn:hover,
+.nav-btn.active{
+    background:rgba(57,217,255,.09);
+    color:var(--cyan);
+}
+
+.nav-icon{
+    width:22px;
+    text-align:center;
+}
+
+.side-title{
+    color:#718da2;
+    text-transform:uppercase;
+    font-size:10px;
+    letter-spacing:1.5px;
+    margin:12px 12px 8px;
+}
+
+.main{
+    min-width:0;
+}
+
+/* PAGE */
+
+.page{
+    display:none;
+}
+
+.page.active{
+    display:block;
+}
+
+.hero{
+    position:relative;
+    overflow:hidden;
+    min-height:270px;
+    padding:38px;
+    border:1px solid var(--line);
+    border-radius:24px;
+    background:
+        linear-gradient(115deg,rgba(9,31,51,.96),rgba(8,19,34,.88));
+    box-shadow:0 25px 70px rgba(0,0,0,.25);
+}
+
+.hero:before{
+    content:"";
+    position:absolute;
+    width:350px;
+    height:350px;
+    border:1px solid rgba(57,217,255,.15);
+    border-radius:50%;
+    right:-100px;
+    top:-150px;
+    box-shadow:
+        0 0 0 40px rgba(57,217,255,.025),
+        0 0 0 90px rgba(57,217,255,.018);
+}
+
+.hero:after{
+    content:"";
+    position:absolute;
+    width:10px;
+    height:10px;
+    border-radius:50%;
+    background:var(--cyan);
+    right:140px;
+    top:75px;
+    box-shadow:
+        0 0 20px var(--cyan),
+        80px 70px 0 -2px var(--green),
+        20px 145px 0 -3px var(--pink);
+}
+
+.eyebrow{
+    color:var(--cyan);
+    font-size:12px;
+    font-weight:800;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    margin-bottom:12px;
+}
+
+.hero h1{
+    max-width:680px;
+    font-size:clamp(30px,4vw,52px);
+    line-height:1.04;
+    margin-bottom:15px;
+}
+
+.hero h1 span{
+    color:var(--cyan);
+}
+
+.hero p{
+    max-width:680px;
+    color:#9fb8ca;
+    line-height:1.65;
+    margin-bottom:25px;
+}
+
+.hero-buttons{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+}
+
+.primary,
+.secondary,
+.danger-btn{
+    border-radius:11px;
+    padding:11px 16px;
+    border:1px solid transparent;
+    font-weight:750;
+}
+
+.primary{
+    color:#00131a;
+    background:var(--cyan);
+}
+
+.primary:hover{
+    filter:brightness(1.08);
+}
+
+.secondary{
+    color:#d9f7ff;
+    border-color:var(--line);
+    background:rgba(255,255,255,.035);
+}
+
+.secondary:hover{
+    border-color:rgba(57,217,255,.5);
+}
+
+.danger-btn{
+    color:#ffdce1;
+    border-color:rgba(255,100,124,.3);
+    background:rgba(255,100,124,.08);
+}
+
+/* HEADINGS */
+
+.section-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:15px;
+    margin:25px 0 13px;
+}
+
+.section-head h2{
+    font-size:19px;
+}
+
+.section-head p{
+    color:var(--muted);
+    font-size:13px;
+}
+
+.filters{
+    display:flex;
+    gap:7px;
+    flex-wrap:wrap;
+}
+
+.filter{
+    padding:7px 11px;
+    border-radius:9px;
+    border:1px solid var(--line);
+    color:#93aabd;
+    background:rgba(10,25,41,.8);
+    font-size:12px;
+}
+
+.filter.active{
+    color:var(--cyan);
+    border-color:rgba(57,217,255,.35);
+    background:rgba(57,217,255,.07);
+}
+
+/* PROJECTS */
+
+.project-grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:14px;
+}
+
+.project{
+    overflow:hidden;
+    border:1px solid var(--line);
+    border-radius:17px;
+    background:rgba(8,19,32,.88);
+    transition:.2s;
+}
+
+.project:hover{
+    transform:translateY(-2px);
+    border-color:rgba(57,217,255,.35);
+}
+
+.project-cover{
+    height:150px;
+    display:grid;
+    place-items:center;
+    position:relative;
+    background:
+        linear-gradient(135deg,rgba(42,126,210,.22),rgba(26,48,79,.35));
+    overflow:hidden;
+}
+
+.project-cover:before{
+    content:"";
+    width:180px;
+    height:180px;
+    border:1px solid rgba(57,217,255,.15);
+    border-radius:50%;
+    position:absolute;
+}
+
+.project-cover:after{
+    content:"";
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    background:var(--cyan);
+    box-shadow:0 0 20px var(--cyan);
+}
+
+.cover-icon{
+    position:relative;
+    z-index:2;
+    font-size:38px;
+    opacity:.9;
+}
+
+.project-body{
+    padding:15px;
+}
+
+.project-title{
+    font-size:17px;
+    font-weight:800;
+    margin-bottom:7px;
+}
+
+.project-desc{
+    color:#8fa8bb;
+    font-size:13px;
+    line-height:1.55;
+    min-height:41px;
+}
+
+.creator{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    margin:13px 0;
+}
+
+.creator .avatar{
+    width:30px;
+    height:30px;
+}
+
+.creator-info{
+    min-width:0;
+}
+
+.creator-name{
+    font-size:12px;
+    font-weight:700;
+}
+
+.creator-handle{
+    font-size:11px;
+    color:#6f899d;
+}
+
+.project-actions{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding-top:11px;
+    border-top:1px solid rgba(255,255,255,.055);
+}
+
+.action{
+    border:0;
+    color:#8fa9ba;
+    background:transparent;
+    font-size:12px;
+    padding:5px;
+}
+
+.action:hover{
+    color:var(--cyan);
+}
+
+.action.liked{
+    color:#ff6b9d;
+}
+
+.tag{
+    display:inline-block;
+    font-size:10px;
+    color:#77dfff;
+    background:rgba(57,217,255,.06);
+    border:1px solid rgba(57,217,255,.15);
+    padding:4px 7px;
+    border-radius:6px;
+    margin:3px 3px 0 0;
+}
+
+.empty{
+    padding:45px 20px;
+    text-align:center;
+    border:1px dashed rgba(91,180,255,.22);
+    border-radius:17px;
+    color:#7891a3;
+}
+
+.empty strong{
+    display:block;
+    color:#cceeff;
+    margin-bottom:7px;
+}
+
+/* RIGHT BAR */
+
+.stat-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+}
+
+.stat{
+    padding:13px 9px;
+    border-radius:12px;
+    background:rgba(255,255,255,.025);
+    border:1px solid rgba(255,255,255,.05);
+    text-align:center;
+}
+
+.stat strong{
+    display:block;
+    color:var(--cyan);
+    font-size:20px;
+}
+
+.stat span{
+    color:#718a9c;
+    font-size:10px;
+}
+
+.info-line{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    padding:10px 3px;
+    border-bottom:1px solid rgba(255,255,255,.05);
+    color:#90a8b9;
+    font-size:12px;
+}
+
+.info-line:last-child{
+    border-bottom:0;
+}
+
+.info-line strong{
+    color:#d9effa;
+}
+
+/* FORMS */
+
+.form-card{
+    padding:25px;
+    border-radius:19px;
+    border:1px solid var(--line);
+    background:rgba(8,19,32,.9);
+}
+
+.form-group{
+    margin-bottom:18px;
+}
+
+.form-group label{
+    display:block;
+    color:#b7cedd;
+    font-size:12px;
+    font-weight:700;
+    margin-bottom:7px;
+}
+
+.form-control{
+    width:100%;
+    border:1px solid var(--line);
+    border-radius:11px;
+    background:#071321;
+    color:white;
+    outline:none;
+    padding:12px 13px;
+}
+
+.form-control:focus{
+    border-color:rgba(57,217,255,.55);
+}
+
+textarea.form-control{
+    min-height:120px;
+    resize:vertical;
+}
+
+.file-drop{
+    border:1px dashed rgba(57,217,255,.35);
+    border-radius:14px;
+    padding:25px;
+    text-align:center;
+    background:rgba(57,217,255,.025);
+    transition:.2s;
+}
+
+.file-drop.drag{
+    border-color:var(--cyan);
+    background:rgba(57,217,255,.08);
+}
+
+.file-drop strong{
+    display:block;
+    margin-bottom:7px;
+}
+
+.file-drop p{
+    color:#748da0;
+    font-size:12px;
+    margin-bottom:13px;
+}
+
+.file-list{
+    display:flex;
+    flex-wrap:wrap;
+    gap:7px;
+    margin-top:12px;
+}
+
+.file-chip{
+    padding:7px 9px;
+    border-radius:8px;
+    background:#0c2135;
+    color:#9ec1d5;
+    font-size:11px;
+}
+
+/* CHANNEL */
+
+.channel-head{
+    padding:27px;
+    border:1px solid var(--line);
+    border-radius:20px;
+    background:rgba(8,20,34,.9);
+    display:flex;
+    gap:20px;
+    align-items:center;
+}
+
+.big-avatar{
+    width:85px;
+    height:85px;
+    flex:0 0 85px;
+    border-radius:50%;
+    display:grid;
+    place-items:center;
+    font-size:27px;
+    font-weight:900;
+    background:linear-gradient(135deg,#267eff,#35d7ff);
+}
+
+.channel-info h1{
+    margin-bottom:5px;
+}
+
+.channel-info p{
+    color:#849daf;
+    font-size:13px;
+    margin-bottom:13px;
+}
+
+.channel-stats{
+    display:flex;
+    gap:18px;
+    flex-wrap:wrap;
+}
+
+.channel-stats span{
+    color:#8ea8ba;
+    font-size:12px;
+}
+
+.channel-stats strong{
+    color:#dff8ff;
+}
+
+/* AI */
+
+.ai-window{
+    border:1px solid var(--line);
+    border-radius:18px;
+    overflow:hidden;
+    background:rgba(7,18,31,.92);
+}
+
+.ai-header{
+    padding:16px;
+    border-bottom:1px solid var(--line);
+    display:flex;
+    gap:12px;
+    align-items:center;
+}
+
+.ai-orb{
+    width:40px;
+    height:40px;
+    border-radius:50%;
+    display:grid;
+    place-items:center;
+    color:#00151c;
+    background:var(--cyan);
+    box-shadow:0 0 25px rgba(57,217,255,.25);
+}
+
+.ai-messages{
+    min-height:340px;
+    max-height:470px;
+    overflow-y:auto;
+    padding:18px;
+}
+
+.message{
+    max-width:80%;
+    padding:12px 14px;
+    border-radius:13px;
+    margin-bottom:11px;
+    font-size:13px;
+    line-height:1.55;
+}
+
+.message.bot{
+    background:#0d2134;
+    border:1px solid rgba(57,217,255,.08);
+    color:#b8d1df;
+}
+
+.message.user{
+    margin-left:auto;
+    background:rgba(57,217,255,.09);
+    border:1px solid rgba(57,217,255,.16);
+}
+
+.ai-input{
+    padding:12px;
+    display:flex;
+    gap:8px;
+    border-top:1px solid var(--line);
+}
+
+.ai-input input{
+    flex:1;
+}
+
+/* MODALS */
+
+.modal{
+    display:none;
+    position:fixed;
+    inset:0;
+    z-index:300;
+    background:rgba(0,0,0,.72);
+    backdrop-filter:blur(8px);
+    padding:20px;
+    align-items:center;
+    justify-content:center;
+}
+
+.modal.show{
+    display:flex;
+}
+
+.modal-box{
+    width:min(570px,100%);
+    max-height:90vh;
+    overflow:auto;
+    border:1px solid rgba(57,217,255,.25);
+    border-radius:20px;
+    background:#071321;
+    box-shadow:0 30px 100px rgba(0,0,0,.5);
+}
+
+.modal-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:18px 20px;
+    border-bottom:1px solid var(--line);
+}
+
+.modal-body{
+    padding:20px;
+}
+
+.close{
+    width:34px;
+    height:34px;
+    border:1px solid var(--line);
+    border-radius:9px;
+    background:transparent;
+    color:#a8bfce;
+}
+
+/* CAMERA */
+
+#cameraVideo{
+    width:100%;
+    border-radius:14px;
+    background:black;
+}
+
+.camera-buttons{
+    display:flex;
+    gap:9px;
+    margin-top:12px;
+}
+
+/* TOAST */
+
+.toast{
+    position:fixed;
+    right:20px;
+    bottom:20px;
+    z-index:500;
+    max-width:350px;
+    padding:13px 16px;
+    border-radius:12px;
+    background:#0b1d2f;
+    border:1px solid rgba(57,217,255,.25);
+    box-shadow:0 15px 40px rgba(0,0,0,.35);
+    color:#dff7ff;
+    transform:translateY(100px);
+    opacity:0;
+    transition:.25s;
+}
+
+.toast.show{
+    transform:translateY(0);
+    opacity:1;
+}
+
+/* MOBILE */
+
+.mobile-nav{
+    display:none;
+}
+
+@media(max-width:1100px){
+    .app{
+        grid-template-columns:205px minmax(0,1fr);
+    }
+
+    .rightbar{
+        display:none;
+    }
+
+    .project-grid{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+}
+
+@media(max-width:760px){
+    .topbar{
+        height:60px;
+        padding:0 11px;
+    }
+
+    .logo{
+        min-width:auto;
+    }
+
+    .logo-text{
+        display:none;
+    }
+
+    .search{
+        max-width:none;
+    }
+
+    .top-actions .icon-btn{
+        display:none;
+    }
+
+    .account-btn{
+        padding-right:6px;
+    }
+
+    .account-btn span{
+        display:none;
+    }
+
+    .app{
+        display:block;
+        padding:73px 11px 88px;
+    }
+
+    .sidebar{
+        display:none;
+    }
+
+    .hero{
+        padding:25px 20px;
+        min-height:300px;
+    }
+
+    .hero h1{
+        font-size:34px;
+    }
+
+    .project-grid{
+        grid-template-columns:1fr;
+    }
+
+    .channel-head{
+        align-items:flex-start;
+        flex-direction:column;
+    }
+
+    .mobile-nav{
+        display:flex;
+        position:fixed;
+        z-index:200;
+        bottom:0;
+        left:0;
+        right:0;
+        height:65px;
+        background:rgba(5,12,21,.95);
+        backdrop-filter:blur(18px);
+        border-top:1px solid var(--line);
+        justify-content:space-around;
+        padding:7px 4px;
+    }
+
+    .mobile-nav button{
+        border:0;
+        background:transparent;
+        color:#7691a4;
+        font-size:10px;
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        gap:4px;
+    }
+
+    .mobile-nav button.active{
+        color:var(--cyan);
+    }
+
+    .mobile-nav .mi{
+        font-size:19px;
+    }
+
+    .form-card{
+        padding:17px;
+    }
+}
+
+.hidden{
+    display:none!important;
+}
+</style>
+</head>
+
+<body>
+
+<header class="topbar">
+
+    <div class="logo">
+        <div class="logo-symbol">⚡</div>
+        <div class="logo-text">Electro<span>Share</span></div>
+    </div>
+
+    <div class="search">
+        <input id="searchInput" placeholder="Search projects, creators, science..." autocomplete="off">
+        <div class="search-icon">⌕</div>
+    </div>
+
+    <div class="top-actions">
+        <button class="icon-btn" id="cameraTop" title="Camera">📷</button>
+        <button class="icon-btn" id="micTop" title="Microphone">🎙</button>
+
+        <button class="account-btn" id="accountButton">
+            <div class="avatar" id="topAvatar">?</div>
+            <span id="topUsername">Sign in</span>
+        </button>
+    </div>
+
+</header>
+
+
+<div class="app">
+
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar">
+
+        <div class="side-card">
+
+            <button class="nav-btn active" data-page="home">
+                <span class="nav-icon">⌂</span> Home
+            </button>
+
+            <button class="nav-btn" data-page="explore">
+                <span class="nav-icon">◉</span> Explore
+            </button>
+
+            <button class="nav-btn" data-page="create">
+                <span class="nav-icon">＋</span> Create Project
+            </button>
+
+            <button class="nav-btn" data-page="following">
+                <span class="nav-icon">♡</span> Following
+            </button>
+
+            <button class="nav-btn" data-page="ai">
+                <span class="nav-icon">✦</span> AI Lab
+            </button>
+
+        </div>
+
+        <div class="side-card">
+
+            <div class="side-title">My Space</div>
+
+            <button class="nav-btn" data-page="channel">
+                <span class="nav-icon">▣</span> My Channel
+            </button>
+
+            <button class="nav-btn" data-page="profile">
+                <span class="nav-icon">◉</span> Profile
+            </button>
+
+        </div>
+
+    </aside>
+
+
+    <!-- MAIN -->
+    <main class="main">
+
+        <!-- HOME -->
+        <section class="page active" id="page-home">
+
+            <div class="hero">
+
+                <div class="eyebrow">SCIENTIFIC CREATOR NETWORK</div>
+
+                <h1>
+                    Discover ideas.<br>
+                    <span>Build the future.</span>
+                </h1>
+
+                <p>
+                    ElectroShare is a space for students, makers, inventors
+                    and technology creators to share scientific projects,
+                    experiments, electronics, robotics and innovative ideas.
+                </p>
+
+                <div class="hero-buttons">
+                    <button class="primary" data-page="create">
+                        ＋ Create Project
+                    </button>
+
+                    <button class="secondary" data-page="explore">
+                        Explore Projects
+                    </button>
+                </div>
+
+            </div>
+
+            <div class="section-head">
+                <div>
+                    <h2>Latest Projects</h2>
+                    <p>Fresh ideas from the ElectroShare community</p>
+                </div>
+
+                <div class="filters">
+                    <button class="filter active" data-filter="all">All</button>
+                    <button class="filter" data-filter="electronics">Electronics</button>
+                    <button class="filter" data-filter="robotics">Robotics</button>
+                    <button class="filter" data-filter="science">Science</button>
+                    <button class="filter" data-filter="iot">IoT</button>
+                </div>
+            </div>
+
+            <div class="project-grid" id="homeProjects"></div>
+
+        </section>
+
+
+        <!-- EXPLORE -->
+        <section class="page" id="page-explore">
+
+            <div class="section-head">
+                <div>
+                    <h2>Explore Science & Technology</h2>
+                    <p>Discover projects shared by creators</p>
+                </div>
+            </div>
+
+            <div class="project-grid" id="exploreProjects"></div>
+
+        </section>
+
+
+        <!-- CREATE -->
+        <section class="page" id="page-create">
+
+            <div class="section-head">
+                <div>
+                    <h2>Create a Project</h2>
+                    <p>Share your scientific idea with the community</p>
+                </div>
+            </div>
+
+            <div class="form-card">
+
+                <div class="form-group">
+                    <label>Project title</label>
+                    <input class="form-control" id="projectTitle"
+                           placeholder="Example: Smart Water Conservation System">
+                </div>
+
+                <div class="form-group">
+                    <label>Scientific field</label>
+
+                    <select class="form-control" id="projectField">
+                        <option value="electronics">Electronics</option>
+                        <option value="robotics">Robotics</option>
+                        <option value="science">Science</option>
+                        <option value="iot">IoT</option>
+                        <option value="energy">Energy</option>
+                        <option value="space">Space</option>
+                        <option value="ai">Artificial Intelligence</option>
+                    </select>
+
+                </div>
+
+                <div class="form-group">
+                    <label>Description</label>
+
+                    <textarea class="form-control" id="projectDescription"
+                        placeholder="Explain the problem, your idea, how it works and what makes it useful..."></textarea>
+
+                </div>
+
+                <div class="form-group">
+                    <label>Tags</label>
+
+                    <input class="form-control" id="projectTags"
+                        placeholder="ESP32, sensor, water, automation">
+                </div>
+
+                <div class="form-group">
+                    <label>Project link (optional)</label>
+
+                    <input class="form-control" id="projectLink"
+                        placeholder="https://github.com/...">
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>Project files / videos / images</label>
+
+                    <div class="file-drop" id="dropZone">
+
+                        <strong>Drop your files here</strong>
+
+                        <p>
+                            Images, PDFs, videos, documents and project files
+                        </p>
+
+                        <input type="file"
+                               id="fileInput"
+                               multiple
+                               hidden
+                               accept="image/*,video/*,.pdf,.txt,.zip,.ino,.cpp,.c,.py,.js,.html">
+
+                        <button class="secondary"
+                                type="button"
+                                id="chooseFiles">
+                            Choose Files
+                        </button>
+
+                    </div>
+
+                    <div class="file-list" id="fileList"></div>
+
+                </div>
+
+
+                <div style="display:flex;gap:9px;flex-wrap:wrap">
+
+                    <button class="secondary" id="openCameraCreate">
+                        📷 Take Photo
+                    </button>
+
+                    <button class="secondary" id="enableMicCreate">
+                        🎙 Enable Microphone
+                    </button>
+
+                    <button class="primary" id="publishProject">
+                        Publish Project
+                    </button>
+
+                </div>
+
+                <p style="color:#657f92;font-size:11px;margin-top:14px">
+                    Files are uploaded to cloud storage when you publish.
+                    Your project information is stored in the shared database,
+                    so other signed-in users can see it from their devices.
+                </p>
+
+            </div>
+
+        </section>
+
+
+        <!-- CHANNEL -->
+        <section class="page" id="page-channel">
+
+            <div class="channel-head">
+
+                <div class="big-avatar" id="channelAvatar">?</div>
+
+                <div class="channel-info">
+
+                    <h1 id="channelName">My Channel</h1>
+
+                    <p id="channelBio">
+                        Science and technology creator
+                    </p>
+
+                    <div class="channel-stats">
+
+                        <span>
+                            <strong id="myProjectCount">0</strong>
+                            Projects
+                        </span>
+
+                        <span>
+                            <strong id="myLikes">0</strong>
+                            Likes
+                        </span>
+
+                        <span>
+                            <strong id="mySubscribers">0</strong>
+                            Subscribers
+                        </span>
+
+                        <span>
+                            <strong id="myFollowing">0</strong>
+                            Following
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="section-head">
+                <div>
+                    <h2>My Projects</h2>
+                </div>
+            </div>
+
+            <div class="project-grid" id="myProjects"></div>
+
+        </section>
+
+
+        <!-- FOLLOWING -->
+        <section class="page" id="page-following">
+
+            <div class="section-head">
+                <div>
+                    <h2>Following</h2>
+                    <p>Projects from creators you follow</p>
+                </div>
+            </div>
+
+            <div class="project-grid" id="followingProjects"></div>
+
+        </section>
+
+
+        <!-- AI -->
+        <section class="page" id="page-ai">
+
+            <div class="section-head">
+                <div>
+                    <h2>AI Lab</h2>
+                    <p>Ask questions about science, electronics and projects</p>
+                </div>
+            </div>
+
+            <div class="ai-window">
+
+                <div class="ai-header">
+                    <div class="ai-orb">✦</div>
+                    <div>
+                        <strong>ElectroShare AI Lab</strong>
+                        <p style="color:#70899b;font-size:11px">
+                            Scientific project assistant
+                        </p>
+                    </div>
+                </div>
+
+                <div class="ai-messages" id="aiMessages">
+
+                    <div class="message bot">
+                        Hello! I can help you think through electronics,
+                        sensors, ESP32 projects, robotics, science ideas
+                        and basic calculations.
+                    </div>
+
+                </div>
+
+                <div class="ai-input">
+
+                    <input class="form-control"
+                           id="aiInput"
+                           placeholder="Ask a science or electronics question...">
+
+                    <button class="primary" id="aiSend">
+                        Send
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- PROFILE -->
+        <section class="page" id="page-profile">
+
+            <div class="section-head">
+                <div>
+                    <h2>Your Profile</h2>
+                    <p>Set up your ElectroShare creator identity</p>
+                </div>
+            </div>
+
+            <div class="form-card">
+
+                <div class="form-group">
+                    <label>Display name</label>
+                    <input class="form-control" id="profileName"
+                           placeholder="Your name">
+                </div>
+
+                <div class="form-group">
+                    <label>Username</label>
+                    <input class="form-control" id="profileUsername"
+                           placeholder="yourusername">
+                </div>
+
+                <div class="form-group">
+                    <label>Bio</label>
+                    <textarea class="form-control" id="profileBio"
+                              placeholder="Tell the community about your interests..."></textarea>
+                </div>
+
+                <button class="primary" id="saveProfile">
+                    Save Profile
+                </button>
+
+                <button class="danger-btn" id="signOutButton"
+                        style="margin-left:7px">
+                    Sign Out
+                </button>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- RIGHT SIDEBAR -->
+    <aside class="rightbar">
+
+        <div class="side-card">
+
+            <div class="side-title">Your Channel</div>
+
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:15px">
+
+                <div class="avatar" id="sideAvatar">?</div>
+
+                <div>
+                    <strong id="sideName">Not signed in</strong>
+                    <div style="color:#6f899d;font-size:11px"
+                         id="sideHandle">
+                        @creator
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="stat-grid">
+
+                <div class="stat">
+                    <strong id="sideProjects">0</strong>
+                    <span>Projects</span>
+                </div>
+
+                <div class="stat">
+                    <strong id="sideLikes">0</strong>
+                    <span>Likes</span>
+                </div>
+
+                <div class="stat">
+                    <strong id="sideSubscribers">0</strong>
+                    <span>Subscribers</span>
+                </div>
+
+                <div class="stat">
+                    <strong id="sideFollowing">0</strong>
+                    <span>Following</span>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="side-card">
+
+            <div class="side-title">ElectroShare</div>
+
+            <div class="info-line">
+                <span>Creators</span>
+                <strong id="communityCreators">0</strong>
+            </div>
+
+            <div class="info-line">
+                <span>Projects</span>
+                <strong id="communityProjects">0</strong>
+            </div>
+
+            <div class="info-line">
+                <span>Online Storage</span>
+                <strong>Cloud</strong>
+            </div>
+
+        </div>
+
+
+        <div class="side-card">
+
+            <div class="side-title">Scientific Fields</div>
+
+            <div style="line-height:2;color:#8099aa;font-size:12px">
+                ⚡ Electronics<br>
+                🤖 Robotics<br>
+                🔬 Science<br>
+                📡 IoT<br>
+                🌱 Energy<br>
+                🚀 Space<br>
+                ✦ AI
+            </div>
+
+        </div>
+
+    </aside>
+
+</div>
+
+
+<!-- MOBILE NAV -->
+
+<nav class="mobile-nav">
+
+    <button class="active" data-page="home">
+        <span class="mi">⌂</span>
+        Home
+    </button>
+
+    <button data-page="explore">
+        <span class="mi">◉</span>
+        Explore
+    </button>
+
+    <button data-page="create">
+        <span class="mi">＋</span>
+        Create
+    </button>
+
+    <button data-page="following">
+        <span class="mi">♡</span>
+        Following
+    </button>
+
+    <button data-page="channel">
+        <span class="mi">▣</span>
+        Channel
+    </button>
+
+</nav>
+
+
+<!-- AUTH MODAL -->
+
+<div class="modal" id="authModal">
+
+    <div class="modal-box">
+
+        <div class="modal-head">
+            <strong>ElectroShare Account</strong>
+            <button class="close" data-close="authModal">×</button>
+        </div>
+
+        <div class="modal-body">
+
+            <div class="form-group">
+                <label>Email</label>
+                <input class="form-control" id="authEmail"
+                       type="email"
+                       placeholder="you@example.com">
+            </div>
+
+            <div class="form-group">
+                <label>Password</label>
+                <input class="form-control" id="authPassword"
+                       type="password"
+                       placeholder="Password">
+            </div>
+
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+
+                <button class="primary" id="signInButton">
+                    Sign In
+                </button>
+
+                <button class="secondary" id="signUpButton">
+                    Create Account
+                </button>
+
+                <button class="secondary" id="googleButton">
+                    Continue with Google
+                </button>
+
+            </div>
+
+            <p style="font-size:11px;color:#688296;margin-top:15px">
+                Use the same account on your laptop and phone to access
+                your ElectroShare channel and projects everywhere.
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- CAMERA MODAL -->
+
+<div class="modal" id="cameraModal">
+
+    <div class="modal-box">
+
+        <div class="modal-head">
+            <strong>ElectroShare Camera</strong>
+            <button class="close" data-close="cameraModal">×</button>
+        </div>
+
+        <div class="modal-body">
+
+            <video id="cameraVideo" autoplay playsinline></video>
+
+            <canvas id="cameraCanvas" class="hidden"></canvas>
+
+            <div class="camera-buttons">
+
+                <button class="primary" id="captureButton">
+                    Capture
+                </button>
+
+                <button class="secondary" id="stopCameraButton">
+                    Stop Camera
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<div class="toast" id="toast"></div>
+
+
+<script>
+
+/* ============================================================
+   ELECTROSHARE CLOUD CONFIGURATION
+   ============================================================
+
+   Replace these two values with your Supabase project values.
+
+   Supabase Dashboard:
+   Project Settings → API
+
+   You will find:
+   Project URL
+   anon/public key
+
+   ============================================================ */
+
+const SUPABASE_URL = "YOUR_SUPABASE_PROJECT_URL";
+const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+
+
+let supabaseClient = null;
+
+if(
+    SUPABASE_URL !== "YOUR_SUPABASE_PROJECT_URL" &&
+    SUPABASE_ANON_KEY !== "YOUR_SUPABASE_ANON_KEY"
+){
+    supabaseClient =
+        window.supabase.createClient(
+            SUPABASE_URL,
+            SUPABASE_ANON_KEY
+        );
+}
+
+
+/* ============================================================
+   STATE
+   ============================================================ */
+
+let currentUser = null;
+let profile = null;
+let projects = [];
+let selectedFiles = [];
+let cameraStream = null;
+
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+
+function esc(value){
+
+    if(value === null || value === undefined){
+        return "";
+    }
+
+    return String(value)
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
+}
+
+
+function initials(name){
+
+    if(!name){
+        return "?";
+    }
+
+    return name
+        .trim()
+        .split(/\s+/)
+        .slice(0,2)
+        .map(x => x[0])
+        .join("")
+        .toUpperCase();
+}
+
+
+function toast(message){
+
+    const el = document.getElementById("toast");
+
+    el.textContent = message;
+    el.classList.add("show");
+
+    setTimeout(()=>{
+        el.classList.remove("show");
+    },3000);
+}
+
+
+function requireCloud(){
+
+    if(!supabaseClient){
+
+        toast(
+            "Connect your Supabase URL and anon key first."
+        );
+
+        return false;
+    }
+
+    return true;
+}
+
+
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+
+function showPage(page){
+
+    document.querySelectorAll(".page").forEach(p=>{
+        p.classList.remove("active");
+    });
+
+    const target =
+        document.getElementById("page-" + page);
+
+    if(target){
+        target.classList.add("active");
+    }
+
+    document.querySelectorAll("[data-page]").forEach(btn=>{
+        btn.classList.toggle(
+            "active",
+            btn.dataset.page === page
+        );
+    });
+
+    if(location.hash !== "#" + page){
+        history.replaceState(null,"","#" + page);
+    }
+
+    window.scrollTo({
+        top:0,
+        behavior:"smooth"
+    });
+
+    if(page === "channel"){
+        renderMyChannel();
+    }
+
+    if(page === "following"){
+        renderFollowing();
+    }
+
+    if(page === "profile"){
+        fillProfile();
+    }
+}
+
+
+document.addEventListener("click",e=>{
+
+    const pageButton =
+        e.target.closest("[data-page]");
+
+    if(pageButton){
+
+        showPage(pageButton.dataset.page);
+    }
+
+});
+
+
+window.addEventListener("hashchange",()=>{
+
+    const page =
+        location.hash.replace("#","") || "home";
+
+    showPage(page);
+});
+
+
+/* ============================================================
+   AUTH
+   ============================================================ */
+
+document.getElementById("accountButton")
+    .addEventListener("click",()=>{
+
+        if(currentUser){
+
+            showPage("profile");
+
+        }else{
+
+            document
+                .getElementById("authModal")
+                .classList.add("show");
+
+        }
+
+    });
+
+
+document.getElementById("signUpButton")
+    .addEventListener("click",async()=>{
+
+        if(!requireCloud()) return;
+
+        const email =
+            document.getElementById("authEmail").value.trim();
+
+        const password =
+            document.getElementById("authPassword").value;
+
+        if(!email || !password){
+
+            toast("Enter email and password.");
+            return;
+        }
+
+        const {error} =
+            await supabaseClient.auth.signUp({
+                email,
+                password
+            });
+
+        if(error){
+
+            toast(error.message);
+            return;
+        }
+
+        toast(
+            "Account created. Check your email if confirmation is enabled."
+        );
+
+    });
+
+
+document.getElementById("signInButton")
+    .addEventListener("click",async()=>{
+
+        if(!requireCloud()) return;
+
+        const email =
+            document.getElementById("authEmail").value.trim();
+
+        const password =
+            document.getElementById("authPassword").value;
+
+        const {data,error} =
+            await supabaseClient.auth.signInWithPassword({
+                email,
+                password
+            });
+
+        if(error){
+
+            toast(error.message);
+            return;
+        }
+
+        currentUser = data.user;
+
+        document
+            .getElementById("authModal")
+            .classList.remove("show");
+
+        await loadProfile();
+
+        toast("Signed in successfully.");
+
+    });
+
+
+document.getElementById("googleButton")
+    .addEventListener("click",async()=>{
+
+        if(!requireCloud()) return;
+
+        const {error} =
+            await supabaseClient.auth.signInWithOAuth({
+                provider:"google",
+                options:{
+                    redirectTo:window.location.origin
+                }
+            });
+
+        if(error){
+            toast(error.message);
+        }
+
+    });
+
+
+document.getElementById("signOutButton")
+    .addEventListener("click",async()=>{
+
+        if(!supabaseClient) return;
+
+        await supabaseClient.auth.signOut();
+
+        currentUser = null;
+        profile = null;
+        projects = [];
+
+        updateIdentity();
+        renderProjects();
+
+        toast("Signed out.");
+
+        showPage("home");
+
+    });
+
+
+/* ============================================================
+   PROFILE
+   ============================================================ */
+
+async function loadProfile(){
+
+    if(!currentUser || !supabaseClient){
+
+        updateIdentity();
+        return;
+    }
+
+    const {data,error} =
+        await supabaseClient
+            .from("profiles")
+            .select("*")
+            .eq("id",currentUser.id)
+            .maybeSingle();
+
+    if(error){
+
+        console.error(error);
+        updateIdentity();
+        return;
+    }
+
+    if(data){
+
+        profile = data;
+
+    }else{
+
+        const newProfile = {
+
+            id:currentUser.id,
+
+            username:
+                "creator_" +
+                currentUser.id.slice(0,6),
+
+            display_name:
+                currentUser.email
+                    ?.split("@")[0] || "Creator",
+
+            bio:
+                "Science and technology creator."
+
+        };
+
+        const result =
+            await supabaseClient
+                .from("profiles")
+                .insert(newProfile)
+                .select()
+                .single();
+
+        if(result.error){
+
+            console.error(result.error);
+
+        }else{
+
+            profile = result.data;
+        }
+
+    }
+
+    updateIdentity();
+
+    await loadProjects();
+
+}
+
+
+function updateIdentity(){
+
+    const name =
+        profile?.display_name ||
+        "Sign in";
+
+    const username =
+        profile?.username ||
+        "creator";
+
+    const avatar =
+        initials(name);
+
+    document.getElementById("topAvatar")
+        .textContent = avatar;
+
+    document.getElementById("topUsername")
+        .textContent =
+            currentUser ? "@" + username : "Sign in";
+
+    document.getElementById("sideAvatar")
+        .textContent = avatar;
+
+    document.getElementById("sideName")
+        .textContent = name;
+
+    document.getElementById("sideHandle")
+        .textContent = "@" + username;
+
+    document.getElementById("channelAvatar")
+        .textContent = avatar;
+
+    document.getElementById("channelName")
+        .textContent = name;
+
+    document.getElementById("channelBio")
+        .textContent =
+            profile?.bio ||
+            "Science and technology creator";
+
+}
+
+
+function fillProfile(){
+
+    if(!profile) return;
+
+    document.getElementById("profileName")
+        .value =
+            profile.display_name || "";
+
+    document.getElementById("profileUsername")
+        .value =
+            profile.username || "";
+
+    document.getElementById("profileBio")
+        .value =
+            profile.bio || "";
+
+}
+
+
+document.getElementById("saveProfile")
+    .addEventListener("click",async()=>{
+
+        if(!requireCloud() || !currentUser){
+
+            toast("Please sign in first.");
+            return;
+        }
+
+        const display_name =
+            document.getElementById("profileName")
+                .value.trim();
+
+        const username =
+            document.getElementById("profileUsername")
+                .value.trim()
+                .toLowerCase()
+                .replace(/[^a-z0-9_]/g,"");
+
+        const bio =
+            document.getElementById("profileBio")
+                .value.trim();
+
+        if(!display_name || !username){
+
+            toast("Name and username are required.");
+            return;
+        }
+
+        const {data,error} =
+            await supabaseClient
+                .from("profiles")
+                .update({
+                    display_name,
+                    username,
+                    bio
+                })
+                .eq("id",currentUser.id)
+                .select()
+                .single();
+
+        if(error){
+
+            toast(error.message);
+            return;
+        }
+
+        profile = data;
+
+        updateIdentity();
+
+        toast("Profile saved.");
+
+    });
+
+
+/* ============================================================
+   PROJECT LOADING
+   ============================================================ */
+
+async function loadProjects(){
+
+    if(!supabaseClient){
+
+        projects = [];
+        renderProjects();
+        return;
+    }
+
+    const {data,error} =
+        await supabaseClient
+            .from("projects")
+            .select(`
+                *,
+                profiles (
+                    id,
+                    username,
+                    display_name,
+                    bio
+                )
+            `)
+            .order("created_at",{ascending:false});
+
+    if(error){
+
+        console.error(error);
+        toast("Could not load projects.");
+        return;
+    }
+
+    projects = data || [];
+
+    renderProjects();
+    updateCommunityStats();
+
+}
+
+
+function renderProjects(){
+
+    renderProjectContainer(
+        document.getElementById("homeProjects"),
+        projects
+    );
+
+    renderProjectContainer(
+        document.getElementById("exploreProjects"),
+        projects
+    );
+
+    renderMyChannel();
+
+    updateCommunityStats();
+
+}
+
+
+function renderProjectContainer(container,list){
+
+    if(!container) return;
+
+    if(!list.length){
+
+        container.innerHTML = `
+            <div class="empty" style="grid-column:1/-1">
+                <strong>No projects yet</strong>
+                Be the first creator to publish a scientific project.
+            </div>
+        `;
+
+        return;
+    }
+
+    container.innerHTML =
+        list.map(projectCard).join("");
+
+}
+
+
+function projectCard(project){
+
+    const creator =
+        project.profiles || {};
+
+    const creatorName =
+        creator.display_name || "Creator";
+
+    const username =
+        creator.username || "creator";
+
+    const liked =
+        project.liked_by_current_user === true;
+
+    const fieldIcon = {
+
+        electronics:"⚡",
+        robotics:"🤖",
+        science:"🔬",
+        iot:"📡",
+        energy:"🌱",
+        space:"🚀",
+        ai:"✦"
+
+    }[project.field] || "⚙";
+
+    const tags =
+        Array.isArray(project.tags)
+        ? project.tags
+        : [];
+
+    return `
+
+        <article class="project">
+
+            <div class="project-cover">
+
+                <div class="cover-icon">
+                    ${fieldIcon}
+                </div>
+
+            </div>
+
+            <div class="project-body">
+
+                <div class="project-title">
+                    ${esc(project.title)}
+                </div>
+
+                <div class="project-desc">
+                    ${esc(project.description || "")}
+                </div>
+
+                <div>
+
+                    ${tags.map(tag =>
+                        `<span class="tag">${esc(tag)}</span>`
+                    ).join("")}
+
+                </div>
+
+                <div class="creator">
+
+                    <div class="avatar">
+                        ${initials(creatorName)}
+                    </div>
+
+                    <div class="creator-info">
+
+                        <div class="creator-name">
+                            ${esc(creatorName)}
+                        </div>
+
+                        <div class="creator-handle">
+                            @${esc(username)}
+                        </div>
+
+                    </div>
+
+                    ${
+                        currentUser &&
+                        creator.id !== currentUser.id
+                        ?
+                        `
+                        <button
+                            class="secondary follow-btn"
+                            style="margin-left:auto;padding:6px 9px"
+                            data-user="${creator.id}">
+                            Follow
+                        </button>
+                        `
+                        :
+                        ""
+                    }
+
+                </div>
+
+                <div class="project-actions">
+
+                    <button
+                        class="action like-btn ${liked ? "liked":""}"
+                        data-id="${project.id}">
+                        ${liked ? "♥":"♡"} ${project.likes_count || 0}
+                    </button>
+
+                    <button
+                        class="action"
+                        data-profile="${creator.id}">
+                        ◉ Channel
+                    </button>
+
+                    ${
+                        project.file_url
+                        ?
+                        `
+                        <a
+                            class="action"
+                            href="${esc(project.file_url)}"
+                            target="_blank"
+                            rel="noopener">
+                            ↗ Files
+                        </a>
+                        `
+                        :
+                        ""
+                    }
+
+                    ${
+                        project.project_link
+                        ?
+                        `
+                        <a
+                            class="action"
+                            href="${safeUrl(project.project_link)}"
+                            target="_blank"
+                            rel="noopener">
+                            ↗ Open
+                        </a>
+                        `
+                        :
+                        ""
+                    }
+
+                    ${
+                        currentUser &&
+                        project.user_id === currentUser.id
+                        ?
+                        `
+                        <button
+                            class="action"
+                            style="margin-left:auto;color:#ff778c"
+                            data-delete="${project.id}">
+                            Delete
+                        </button>
+                        `
+                        :
+                        ""
+                    }
+
+                </div>
+
+            </div>
+
+        </article>
+    `;
+}
+
+
+function safeUrl(url){
+
+    try{
+
+        const parsed =
+            new URL(url);
+
+        if(
+            parsed.protocol === "https:" ||
+            parsed.protocol === "http:"
+        ){
+            return esc(parsed.href);
+        }
+
+    }catch(e){}
+
+    return "#";
+
+}
+
+
+/* ============================================================
+   SEARCH
+   ============================================================ */
+
+document.getElementById("searchInput")
+    .addEventListener("input",e=>{
+
+        const q =
+            e.target.value.trim().toLowerCase();
+
+        if(!q){
+
+            renderProjectContainer(
+                document.getElementById("homeProjects"),
+                projects
+            );
+
+            return;
+        }
+
+        const result =
+            projects.filter(p=>{
+
+                const creator =
+                    p.profiles?.display_name || "";
+
+                const username =
+                    p.profiles?.username || "";
+
+                const tags =
+                    (p.tags || []).join(" ");
+
+                return (
+                    p.title?.toLowerCase().includes(q) ||
+                    p.description?.toLowerCase().includes(q) ||
+                    p.field?.toLowerCase().includes(q) ||
+                    creator.toLowerCase().includes(q) ||
+                    username.toLowerCase().includes(q) ||
+                    tags.toLowerCase().includes(q)
+                );
+
+            });
+
+        renderProjectContainer(
+            document.getElementById("homeProjects"),
+            result
+        );
+
+        showPage("home");
+
+    });
+
+
+/* ============================================================
+   FILTERS
+   ============================================================ */
+
+document.querySelectorAll(".filter")
+    .forEach(button=>{
+
+        button.addEventListener("click",()=>{
+
+            document.querySelectorAll(".filter")
+                .forEach(b=>b.classList.remove("active"));
+
+            button.classList.add("active");
+
+            const filter =
+                button.dataset.filter;
+
+            const result =
+                filter === "all"
+                ? projects
+                : projects.filter(
+                    p=>p.field === filter
+                );
+
+            renderProjectContainer(
+                document.getElementById("homeProjects"),
+                result
+            );
+
+        });
+
+    });
+
+
+/* ============================================================
+   FOLLOW / LIKE / DELETE
+   ============================================================ */
+
+document.addEventListener("click",async e=>{
+
+    const like =
+        e.target.closest(".like-btn");
+
+    if(like){
+
+        await toggleLike(like.dataset.id);
+    }
+
+    const follow =
+        e.target.closest(".follow-btn");
+
+    if(follow){
+
+        await toggleFollow(follow.dataset.user);
+    }
+
+    const del =
+        e.target.closest("[data-delete]");
+
+    if(del){
+
+        await deleteProject(del.dataset.delete);
+    }
+
+    const profileButton =
+        e.target.closest("[data-profile]");
+
+    if(profileButton){
+
+        await openCreator(
+            profileButton.dataset.profile
+        );
+    }
+
+});
+
+
+async function toggleLike(projectId){
+
+    if(!requireCloud() || !currentUser){
+
+        toast("Sign in to like projects.");
+        return;
+    }
+
+    const {data,error} =
+        await supabaseClient
+            .from("project_likes")
+            .select("*")
+            .eq("project_id",projectId)
+            .eq("user_id",currentUser.id)
+            .maybeSingle();
+
+    if(error){
+
+        toast(error.message);
+        return;
+    }
+
+    if(data){
+
+        await supabaseClient
+            .from("project_likes")
+            .delete()
+            .eq("project_id",projectId)
+            .eq("user_id",currentUser.id);
+
+    }else{
+
+        await supabaseClient
+            .from("project_likes")
+            .insert({
+                project_id:projectId,
+                user_id:currentUser.id
+            });
+
+    }
+
+    await loadProjects();
+
+}
+
+
+async function toggleFollow(userId){
+
+    if(!requireCloud() || !currentUser){
+
+        toast("Sign in to follow creators.");
+        return;
+    }
+
+    if(userId === currentUser.id){
+        return;
+    }
+
+    const {data,error} =
+        await supabaseClient
+            .from("follows")
+            .select("*")
+            .eq("follower_id",currentUser.id)
+            .eq("following_id",userId)
+            .maybeSingle();
+
+    if(error){
+
+        toast(error.message);
+        return;
+    }
+
+    if(data){
+
+        await supabaseClient
+            .from("follows")
+            .delete()
+            .eq("follower_id",currentUser.id)
+            .eq("following_id",userId);
+
+        toast("Unfollowed.");
+
+    }else{
+
+        await supabaseClient
+            .from("follows")
+            .insert({
+                follower_id:currentUser.id,
+                following_id:userId
+            });
+
+        toast("Following creator.");
+
+    }
+
+}
+
+
+async function deleteProject(id){
+
+    if(!requireCloud() || !currentUser){
+        return;
+    }
+
+    if(!confirm("Delete this project?")){
+        return;
+    }
+
+    const {error} =
+        await supabaseClient
+            .from("projects")
+            .delete()
+            .eq("id",id)
+            .eq("user_id",currentUser.id);
+
+    if(error){
+
+        toast(error.message);
+        return;
+    }
+
+    toast("Project deleted.");
+
+    await loadProjects();
+
+}
+
+
+/* ============================================================
+   CREATOR PROFILE
+   ============================================================ */
+
+async function openCreator(userId){
+
+    if(!requireCloud()){
+        return;
+    }
+
+    const {data,error} =
+        await supabaseClient
+            .from("profiles")
+            .select("*")
+            .eq("id",userId)
+            .single();
+
+    if(error){
+
+        toast("Creator not found.");
+        return;
+    }
+
+    const creatorProjects =
+        projects.filter(
+            p=>p.user_id === userId
+        );
+
+    const html = `
+
+        <div class="channel-head">
+
+            <div class="big-avatar">
+                ${initials(data.display_name)}
+            </div>
+
+            <div class="channel-info">
+
+                <h1>${esc(data.display_name)}</h1>
+
+                <p>@${esc(data.username)}</p>
+
+                <p>${esc(data.bio || "")}</p>
+
+                <div class="channel-stats">
+
+                    <span>
+                        <strong>${creatorProjects.length}</strong>
+                        Projects
+                    </span>
+
+                    <span>
+                        <strong>
+                            ${creatorProjects.reduce(
+                                (a,p)=>a+(p.likes_count||0),0
+                            )}
+                        </strong>
+                        Likes
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="section-head">
+            <div>
+                <h2>Projects</h2>
+            </div>
+        </div>
+
+        <div class="project-grid">
+            ${
+                creatorProjects.length
+                ?
+                creatorProjects.map(projectCard).join("")
+                :
+                `
+                <div class="empty" style="grid-column:1/-1">
+                    <strong>No projects yet</strong>
+                    This creator hasn't published a project.
+                </div>
+                `
+            }
+        </div>
+    `;
+
+    document.getElementById("page-explore")
+        .innerHTML = html;
+
+    showPage("explore");
+
+}
+
+
+/* ============================================================
+   MY CHANNEL
+   ============================================================ */
+
+function renderMyChannel(){
+
+    if(!currentUser){
+
+        document.getElementById("myProjects").innerHTML = `
+            <div class="empty" style="grid-column:1/-1">
+                <strong>Sign in to open your channel</strong>
+                Your projects will appear here.
+            </div>
+        `;
+
+        return;
+    }
+
+    const mine =
+        projects.filter(
+            p=>p.user_id === currentUser.id
+        );
+
+    renderProjectContainer(
+        document.getElementById("myProjects"),
+        mine
+    );
+
+    document.getElementById("myProjectCount")
+        .textContent = mine.length;
+
+    document.getElementById("myLikes")
+        .textContent =
+            mine.reduce(
+                (total,p)=>total+(p.likes_count||0),
+                0
+            );
+
+    updateSideStats(mine);
+
+}
+
+
+async function updateSideStats(mine){
+
+    if(!currentUser || !supabaseClient){
+        return;
+    }
+
+    const {count:followers} =
+        await supabaseClient
+            .from("follows")
+            .select("*",{count:"exact",head:true})
+            .eq("following_id",currentUser.id);
+
+    const {count:following} =
+        await supabaseClient
+            .from("follows")
+            .select("*",{count:"exact",head:true})
+            .eq("follower_id",currentUser.id);
+
+    const likes =
+        mine.reduce(
+            (a,p)=>a+(p.likes_count||0),
+            0
+        );
+
+    document.getElementById("mySubscribers")
+        .textContent = followers || 0;
+
+    document.getElementById("myFollowing")
+        .textContent = following || 0;
+
+    document.getElementById("sideProjects")
+        .textContent = mine.length;
+
+    document.getElementById("sideLikes")
+        .textContent = likes;
+
+    document.getElementById("sideSubscribers")
+        .textContent = followers || 0;
+
+    document.getElementById("sideFollowing")
+        .textContent = following || 0;
+
+}
+
+
+/* ============================================================
+   FOLLOWING FEED
+   ============================================================ */
+
+async function renderFollowing(){
+
+    const container =
+        document.getElementById("followingProjects");
+
+    if(!currentUser || !supabaseClient){
+
+        container.innerHTML = `
+            <div class="empty" style="grid-column:1/-1">
+                <strong>Sign in to see your following feed</strong>
+            </div>
+        `;
+
+        return;
+    }
+
+    const {data,error} =
+        await supabaseClient
+            .from("follows")
+            .select("following_id")
+            .eq("follower_id",currentUser.id);
+
+    if(error){
+
+        toast(error.message);
+        return;
+    }
+
+    const ids =
+        (data || []).map(x=>x.following_id);
+
+    const following =
+        projects.filter(
+            p=>ids.includes(p.user_id)
+        );
+
+    renderProjectContainer(
+        container,
+        following
+    );
+
+}
+
+
+/* ============================================================
+   COMMUNITY STATS
+   ============================================================ */
+
+async function updateCommunityStats(){
+
+    document.getElementById("communityProjects")
+        .textContent = projects.length;
+
+    const uniqueCreators =
+        new Set(
+            projects.map(p=>p.user_id)
+        );
+
+    document.getElementById("communityCreators")
+        .textContent = uniqueCreators.size;
+
+}
+
+
+/* ============================================================
+   FILE STORAGE
+   ============================================================ */
+
+document.getElementById("chooseFiles")
+    .addEventListener("click",()=>{
+
+        document.getElementById("fileInput").click();
+
+    });
+
+
+document.getElementById("fileInput")
+    .addEventListener("change",e=>{
+
+        selectedFiles =
+            Array.from(e.target.files);
+
+        renderFileList();
+
+    });
+
+
+const dropZone =
+    document.getElementById("dropZone");
+
+
+dropZone.addEventListener("dragover",e=>{
+
+    e.preventDefault();
+
+    dropZone.classList.add("drag");
+
+});
+
+
+dropZone.addEventListener("dragleave",()=>{
+
+    dropZone.classList.remove("drag");
+
+});
+
+
+dropZone.addEventListener("drop",e=>{
+
+    e.preventDefault();
+
+    dropZone.classList.remove("drag");
+
+    selectedFiles =
+        Array.from(e.dataTransfer.files);
+
+    renderFileList();
+
+});
+
+
+function renderFileList(){
+
+    const list =
+        document.getElementById("fileList");
+
+    list.innerHTML =
+        selectedFiles.map(file=>`
+
+            <div class="file-chip">
+                ${esc(file.name)}
+                · ${formatBytes(file.size)}
+            </div>
+
+        `).join("");
+
+}
+
+
+function formatBytes(bytes){
+
+    if(bytes < 1024){
+        return bytes + " B";
+    }
+
+    if(bytes < 1024*1024){
+        return (bytes/1024).toFixed(1) + " KB";
+    }
+
+    return (bytes/(1024*1024)).toFixed(1) + " MB";
+
+}
+
+
+/* ============================================================
+   PUBLISH PROJECT
+   ============================================================ */
+
+document.getElementById("publishProject")
+    .addEventListener("click",publishProject);
+
+
+async function publishProject(){
+
+    if(!requireCloud()) return;
+
+    if(!currentUser){
+
+        toast("Sign in before publishing.");
+        return;
+    }
+
+    const title =
+        document.getElementById("projectTitle")
+            .value.trim();
+
+    const field =
+        document.getElementById("projectField")
+            .value;
+
+    const description =
+        document.getElementById("projectDescription")
+            .value.trim();
+
+    const tagText =
+        document.getElementById("projectTags")
+            .value.trim();
+
+    const projectLink =
+        document.getElementById("projectLink")
+            .value.trim();
+
+    if(!title || !description){
+
+        toast("Add a title and description.");
+        return;
+    }
+
+    let fileUrl = null;
+
+    /*
+       Upload the first selected file to Supabase Storage.
+
+       Bucket name:
+       electroshare-files
+    */
+
+    if(selectedFiles.length){
+
+        const file =
+            selectedFiles[0];
+
+        const safeName =
+            file.name
+                .replace(/[^a-zA-Z0-9._-]/g,"_");
+
+        const path =
+            currentUser.id +
+            "/" +
+            Date.now() +
+            "_" +
+            safeName;
+
+        const {error:uploadError} =
+            await supabaseClient
+                .storage
+                .from("electroshare-files")
+                .upload(
+                    path,
+                    file,
+                    {
+                        cacheControl:"3600",
+                        upsert:false
+                    }
+                );
+
+        if(uploadError){
+
+            toast(uploadError.message);
+            return;
+        }
+
+        const publicResult =
+            supabaseClient
+                .storage
+                .from("electroshare-files")
+                .getPublicUrl(path);
+
+        fileUrl =
+            publicResult.data.publicUrl;
+
+    }
+
+
+    const tags =
+        tagText
+        ?
+        tagText
+            .split(",")
+            .map(x=>x.trim())
+            .filter(Boolean)
+        :
+        [];
+
+
+    const {error} =
+        await supabaseClient
+            .from("projects")
+            .insert({
+
+                user_id:currentUser.id,
+
+                title,
+
+                field,
+
+                description,
+
+                tags,
+
+                project_link:
+                    projectLink || null,
+
+                file_url:fileUrl
+
+            });
+
+
+    if(error){
+
+        toast(error.message);
+        return;
+    }
+
+
+    document.getElementById("projectTitle")
+        .value = "";
+
+    document.getElementById("projectDescription")
+        .value = "";
+
+    document.getElementById("projectTags")
+        .value = "";
+
+    document.getElementById("projectLink")
+        .value = "";
+
+    selectedFiles = [];
+
+    renderFileList();
+
+    toast("Project published to ElectroShare!");
+
+    await loadProjects();
+
+    showPage("channel");
+
+}
+
+
+/* ============================================================
+   CAMERA
+   ============================================================ */
+
+async function openCamera(){
+
+    try{
+
+        cameraStream =
+            await navigator.mediaDevices.getUserMedia({
+                video:true
+            });
+
+        const video =
+            document.getElementById("cameraVideo");
+
+        video.srcObject =
+            cameraStream;
+
+        document
+            .getElementById("cameraModal")
+            .classList.add("show");
+
+    }catch(error){
+
+        toast(
+            "Camera permission was not available."
+        );
+
+    }
+
+}
+
+
+function stopCamera(){
+
+    if(cameraStream){
+
+        cameraStream
+            .getTracks()
+            .forEach(track=>track.stop());
+
+        cameraStream = null;
+    }
+
+    const video =
+        document.getElementById("cameraVideo");
+
+    video.srcObject = null;
+
+}
+
+
+document.getElementById("cameraTop")
+    .addEventListener("click",openCamera);
+
+
+document.getElementById("openCameraCreate")
+    .addEventListener("click",openCamera);
+
+
+document.getElementById("stopCameraButton")
+    .addEventListener("click",()=>{
+
+        stopCamera();
+
+        document
+            .getElementById("cameraModal")
+            .classList.remove("show");
+
+    });
+
+
+document.getElementById("captureButton")
+    .addEventListener("click",()=>{
+
+        const video =
+            document.getElementById("cameraVideo");
+
+        const canvas =
+            document.getElementById("cameraCanvas");
+
+        canvas.width =
+            video.videoWidth;
+
+        canvas.height =
+            video.videoHeight;
+
+        const ctx =
+            canvas.getContext("2d");
+
+        ctx.drawImage(
+            video,
+            0,
+            0,
+            canvas.width,
+            canvas.height
+        );
+
+        canvas.toBlob(blob=>{
+
+            if(!blob){
+                return;
+            }
+
+            const file =
+                new File(
+                    [blob],
+                    "electroshare-camera-" +
+                    Date.now() +
+                    ".jpg",
+                    {type:"image/jpeg"}
+                );
+
+            selectedFiles.push(file);
+
+            renderFileList();
+
+            toast("Photo added to your project.");
+
+            stopCamera();
+
+            document
+                .getElementById("cameraModal")
+                .classList.remove("show");
+
+        },"image/jpeg",.92);
+
+    });
+
+
+/* ============================================================
+   MICROPHONE
+   ============================================================ */
+
+async function enableMicrophone(){
+
+    try{
+
+        const stream =
+            await navigator.mediaDevices.getUserMedia({
+                audio:true
+            });
+
+        stream
+            .getTracks()
+            .forEach(track=>track.stop());
+
+        toast("Microphone permission enabled.");
+
+    }catch(error){
+
+        toast("Microphone permission was not available.");
+
+    }
+
+}
+
+
+document.getElementById("micTop")
+    .addEventListener("click",enableMicrophone);
+
+
+document.getElementById("enableMicCreate")
+    .addEventListener("click",enableMicrophone);
+
+
+/* ============================================================
+   MODALS
+   ============================================================ */
+
+document.addEventListener("click",e=>{
+
+    const close =
+        e.target.closest("[data-close]");
+
+    if(close){
+
+        const modal =
+            document.getElementById(
+                close.dataset.close
+            );
+
+        modal.classList.remove("show");
+
+        if(close.dataset.close === "cameraModal"){
+            stopCamera();
+        }
+
+    }
+
+});
+
+
+document.querySelectorAll(".modal")
+    .forEach(modal=>{
+
+        modal.addEventListener("click",e=>{
+
+            if(e.target === modal){
+
+                modal.classList.remove("show");
+
+                if(modal.id === "cameraModal"){
+                    stopCamera();
+                }
+
+            }
+
+        });
+
+    });
+
+
+/* ============================================================
+   AI LAB
+   ============================================================ */
+
+function aiReply(question){
+
+    const q =
+        question.toLowerCase();
+
+    if(q.includes("ultrasonic")){
+
+        return `
+            An ultrasonic sensor measures distance by sending a sound
+            pulse and measuring the returning echo. With an ESP32,
+            the echo time can be converted into distance.
+        `;
+
+    }
+
+    if(q.includes("esp32") && q.includes("led")){
+
+        return `
+            An ESP32 can control an LED through a GPIO pin. Use a
+            suitable current-limiting resistor with the LED and control
+            the pin from your program.
+        `;
+
+    }
+
+    if(q.includes("servo")){
+
+        return `
+            A servo motor is useful when you need controlled angular
+            movement. The ESP32 can generate the control signal and
+            move the servo to a requested position.
+        `;
+
+    }
+
+    if(q.includes("water")){
+
+        return `
+            For a water-saving project, consider measuring water level,
+            flow and leakage. A controller can use those measurements
+            to decide when a pump or valve should operate.
+        `;
+
+    }
+
+    if(q.includes("ohm")){
+
+        return `
+            Ohm's law relates voltage, current and resistance:
+            V = I × R. Therefore I = V/R and R = V/I.
+        `;
+
+    }
+
+    if(q.includes("sensor")){
+
+        return `
+            Choose a sensor based on the quantity you need to measure:
+            temperature, humidity, distance, light, motion, pressure,
+            water level or another physical property.
+        `;
+
+    }
+
+    return `
+        That's an interesting project question. Break the idea into
+        four parts: the problem you want to solve, the sensor or input,
+        the controller that makes the decision, and the output or action.
+        Then test each part separately before combining them.
+    `;
+
+}
+
+
+document.getElementById("aiSend")
+    .addEventListener("click",sendAI);
+
+
+document.getElementById("aiInput")
+    .addEventListener("keydown",e=>{
+
+        if(e.key === "Enter"){
+            sendAI();
+        }
+
+    });
+
+
+function sendAI(){
+
+    const input =
+        document.getElementById("aiInput");
+
+    const question =
+        input.value.trim();
+
+    if(!question){
+        return;
+    }
+
+    const messages =
+        document.getElementById("aiMessages");
+
+    messages.innerHTML += `
+        <div class="message user">
+            ${esc(question)}
+        </div>
+    `;
+
+    input.value = "";
+
+    setTimeout(()=>{
+
+        messages.innerHTML += `
+            <div class="message bot">
+                ${aiReply(question)}
+            </div>
+        `;
+
+        messages.scrollTop =
+            messages.scrollHeight;
+
+    },350);
+
+}
+
+
+/* ============================================================
+   STARTUP
+   ============================================================ */
+
+async function startup(){
+
+    const page =
+        location.hash.replace("#","") || "home";
+
+    showPage(page);
+
+    if(!supabaseClient){
+
+        updateIdentity();
+
+        return;
+    }
+
+    const {data} =
+        await supabaseClient.auth.getSession();
+
+    currentUser =
+        data.session?.user || null;
+
+    if(currentUser){
+
+        await loadProfile();
+
+    }else{
+
+        updateIdentity();
+
+        await loadProjects();
+
+    }
+
+    supabaseClient.auth
+        .onAuthStateChange(
+            async(event,session)=>{
+
+                currentUser =
+                    session?.user || null;
+
+                if(currentUser){
+
+                    await loadProfile();
+
+                }else{
+
+                    profile = null;
+                    projects = [];
+
+                    updateIdentity();
+                    renderProjects();
+
+                }
+
+            }
+        );
+
+}
+
+
+startup();
+
+</script>
+
+</body>
+</html>
